@@ -33,9 +33,22 @@ public class PlayerController : MonoBehaviour
         mInputAction.Player.Fire.performed += DoFire;
         mInputAction.Player.Fire.Enable();
 
+        mInputAction.Player.View.performed += DoChangeMousePosition;
+        mInputAction.Player.View.Enable();
+
         mMovementAction = mInputAction.Player.Movement;
         mMovementAction.Enable();
 
+    }
+
+    private void DoChangeMousePosition(InputAction.CallbackContext obj)
+    {
+        Vector2 deltaPos = mInputAction.Player.View.ReadValue<Vector2>();
+        transform.Rotate(
+            0f,
+            deltaPos.x,
+            0f
+        );
     }
 
     private void DoFire(InputAction.CallbackContext obj)
@@ -70,10 +83,12 @@ public class PlayerController : MonoBehaviour
         mInputAction.Player.Jump.Disable();
         mMovementAction.Disable();
         mInputAction.Disable();
+        //mInputAction.Player.View.Disable();
     }
 
     private void Update()
     {
+
         Vector2 movement = Vector2.ClampMagnitude(
             mMovementAction.ReadValue<Vector2>(),
             1f
