@@ -57,7 +57,7 @@ public class PlayerController : MonoBehaviour
 
         if (Physics.Raycast(
             mFirePoint.position,
-            transform.forward,
+            mCameraTransform.forward,
             out hit,
             fireRange
         ))
