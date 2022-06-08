@@ -8,20 +8,28 @@ public class PlayerController : MonoBehaviour
     public float moveSpeed = 1f;
     public float jumpForce = 3f;
     public float fireRange = 5f;
+    public float rotationXSensitivity = 1f;
     public GameObject explosion;
 
     private PlayerInputAction mInputAction;
     private InputAction mMovementAction;
+    private InputAction mViewAction;
     private Rigidbody mRigidbody;
     private Transform mFirePoint;
+    private Transform mCameraTransform;
+    private float mRotationX = 0f;
     private bool jumpPressed = false;
     private bool onGround = true;
+
 
     private void Awake()
     {
         mInputAction = new PlayerInputAction();
         mRigidbody = GetComponent<Rigidbody>();
         mFirePoint = transform.Find("FirePoint");
+        mCameraTransform = transform.Find("Main Camera");
+
+        Cursor.lockState = CursorLockMode.Locked;
     }
 
     private void OnEnable()
@@ -33,7 +41,7 @@ public class PlayerController : MonoBehaviour
         mInputAction.Player.Fire.performed += DoFire;
         mInputAction.Player.Fire.Enable();
 
-        mInputAction.Player.View.performed += DoChangeMousePosition;
+        mViewAction = mInputAction.Player.View;
         mInputAction.Player.View.Enable();
 
         mMovementAction = mInputAction.Player.Movement;
@@ -41,15 +49,6 @@ public class PlayerController : MonoBehaviour
 
     }
 
-    private void DoChangeMousePosition(InputAction.CallbackContext obj)
-    {
-        Vector2 deltaPos = mInputAction.Player.View.ReadValue<Vector2>();
-        transform.Rotate(
-            0f,
-            deltaPos.x,
-            0f
-        );
-    }
 
     private void DoFire(InputAction.CallbackContext obj)
     {
@@ -66,7 +65,7 @@ public class PlayerController : MonoBehaviour
             // Hubo una colision
             Debug.Log(hit.collider.name);
             GameObject nuevaExplosion = 
-                Instantiate(explosion, hit.point, Quaternion.identity);
+                Instantiate(explosion, hit.point, transform.rotation);
             Destroy(nuevaExplosion, 1f);
         }
 
@@ -88,23 +87,43 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        #region Rotacion
+        Vector2 deltaPos = mViewAction.ReadValue<Vector2>();
+        transform.Rotate(
+            Vector3.up * deltaPos.x * Time.deltaTime
+        );
 
+        mRotationX -= deltaPos.y * rotationXSensitivity;
+        mCameraTransform.localRotation = Quaternion.Euler(
+            Mathf.Clamp(mRotationX, -90f, 90f),
+            0f,
+            0f
+        );
+        #endregion
+
+        #region Movimiento
         Vector2 movement = Vector2.ClampMagnitude(
             mMovementAction.ReadValue<Vector2>(),
             1f
         );
-        mRigidbody.velocity = new Vector3(
+
+        mRigidbody.velocity = movement.x * transform.right * moveSpeed +
+            movement.y * transform.forward * moveSpeed;
+        /*mRigidbody.velocity = new Vector3(
             movement.x * moveSpeed,
             mRigidbody.velocity.y,
             movement.y * moveSpeed
-        );
+        );*/
+        #endregion
 
+        #region Salto
         if (jumpPressed && onGround)
         {
             mRigidbody.velocity += Vector3.up * jumpForce;
             jumpPressed = false;
             onGround = false;
         }
+        #endregion
     }
 
     private void DoJump(InputAction.CallbackContext obj)
