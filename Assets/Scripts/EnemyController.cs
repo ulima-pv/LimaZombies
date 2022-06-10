@@ -6,6 +6,7 @@ public class EnemyController : MonoBehaviour
 {
     public Transform followAt;
     public float distanceToFollow;
+    public EnemySO data; 
 
     private NavMeshAgent mNavMeshAgent;
     private Animator mAnimator;
@@ -14,6 +15,11 @@ public class EnemyController : MonoBehaviour
     {
         mNavMeshAgent = GetComponent<NavMeshAgent>();
         mAnimator = transform.Find("Mutant").GetComponent<Animator>();
+    }
+
+    private void Start()
+    {
+        mNavMeshAgent.speed = data.speed;
     }
 
     private void Update()

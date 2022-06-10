@@ -108,7 +108,8 @@ public class PlayerController : MonoBehaviour
         );
 
         mRigidbody.velocity = movement.x * transform.right * moveSpeed +
-            movement.y * transform.forward * moveSpeed;
+            movement.y * transform.forward * moveSpeed + 
+            transform.up * mRigidbody.velocity.y;
         /*mRigidbody.velocity = new Vector3(
             movement.x * moveSpeed,
             mRigidbody.velocity.y,
